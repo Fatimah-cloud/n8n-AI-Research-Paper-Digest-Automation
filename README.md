@@ -32,6 +32,7 @@ The workflow also filters papers based on abstract length, prevents duplicate en
 - **arXiv API**
 
 ---
+<img width="731" height="194" alt="image" src="https://github.com/user-attachments/assets/09339542-1086-400b-8585-eb40240d6498" />
 
 ##  Workflow
 
