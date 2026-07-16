@@ -9,7 +9,7 @@ The workflow also filters papers based on abstract length, prevents duplicate en
 
 ---
 
-##  Features
+#  Features
 
 -  Automatically runs every day at **8:00 AM**
 -  Retrieves the latest AI research papers from the arXiv API
