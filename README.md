@@ -76,7 +76,7 @@ Aggregate Papers
 Gmail Daily Digest
 ---
 
-##  Workflow Description
+#  Workflow Description
 
 1. The workflow is triggered automatically every day at **8:00 AM**.
 2. It retrieves the latest AI research papers from the **arXiv API**.
