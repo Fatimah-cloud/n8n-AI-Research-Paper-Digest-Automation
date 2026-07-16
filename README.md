@@ -95,7 +95,7 @@ Gmail Daily Digest
 
 ---
 
-##  Google Sheets Output
+#  Google Sheets Output
 
 | Column | Description |
 |---------|-------------|
@@ -109,7 +109,7 @@ Gmail Daily Digest
 
 ---
 
-##  Error Handling
+#  Error Handling
 
 The workflow includes error handling to improve reliability.
 
