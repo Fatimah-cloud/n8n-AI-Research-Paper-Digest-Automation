@@ -4,7 +4,8 @@
 
 AI Research Paper Digest Automation is an **n8n workflow** that automatically retrieves the latest Artificial Intelligence research papers from the arXiv API every day, summarizes them using OpenAI, extracts important keywords, and stores the results in Google Sheets.
 
-The workflow also filters papers based on abstract length, prevents duplicate entries, and sends email notifications for skipped or failed papers.
+The workflow also filters papers based on abstract length, prevents duplicate entries, aggregates all processed papers into a single daily digest, and sends one email containing the summaries and links of all newly processed papers.
+
 
 ---
 
@@ -20,6 +21,7 @@ The workflow also filters papers based on abstract length, prevents duplicate en
 -  Prevents duplicate papers from being added
 -  Sends Gmail notifications for skipped or failed papers
 -  Includes error handling for reliable execution
+-  Aggregates all processed papers into a single daily email digest
 
 ---
 
@@ -66,8 +68,12 @@ Merge Original Data + AI Output
   │
   ▼
 Google Sheets
-```
-
+ │
+  ▼
+Aggregate Papers
+  │
+  ▼
+Gmail Daily Digest
 ---
 
 ##  Workflow Description
@@ -84,6 +90,8 @@ Google Sheets
 8. The workflow checks for duplicate PaperIDs before saving.
 9. New papers are appended to Google Sheets.
 10. If a paper is skipped or an error occurs, Gmail sends a notification.
+11. After all papers have been processed, the Aggregate node combines them into a single collection.
+12. Gmail sends one daily email digest containing the summaries, keywords, publication dates, and links for all newly processed papers.
 
 ---
 
@@ -105,7 +113,10 @@ Google Sheets
 
 The workflow includes error handling to improve reliability.
 
-- Failed AI requests do not stop the workflow.
-- Gmail notifications are sent when a paper cannot be processed.
-- Invalid or skipped papers are handled without interrupting the remaining workflow.
+- Duplicate papers are skipped before processing.
+- Papers with abstracts below the required threshold are excluded.
+- OpenAI processes only valid papers.
+- Processed papers are safely stored in Google Sheets.
+- All successfully processed papers are aggregated into a single daily email.
+- Individual failures do not interrupt the processing of the remaining papers.
 
