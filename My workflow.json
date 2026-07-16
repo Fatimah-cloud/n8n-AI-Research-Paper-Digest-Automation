@@ -1,0 +1,502 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "96c5d1e4-1c54-4a2b-b457-9aaaeab2dfad",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://export.arxiv.org/api/query?search_query=cat:cs.LG&start=0&max_results=10&sortBy=submittedDate&sortOrder=descending",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "b06ff5b5-8b38-4a3e-bbbf-70371b044f1f",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "816ba116-7796-4729-9f2a-928778347d7a",
+      "name": "XML"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "feed.entry",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        576,
+        0
+      ],
+      "id": "89d54b82-efa8-4745-b624-4c496d680d2f",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1136,
+        -16
+      ],
+      "id": "914e5096-98af-4df0-97de-f8fc234052b9",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI research assistant.\n\nSummarize the following research paper in 3 concise sentences.\n\nThen list exactly 5 keywords separated by commas.\n\nTitle:\n{{$json.title}}\n\nAbstract:\n{{$json.summary}}\n\nReturn exactly in this format:\n\nSummary:\n...\n\nKeywords:\n...",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1136,
+        -160
+      ],
+      "id": "a152c28a-6a96-4f2c-97d4-2e77b5f5d9b9",
+      "name": "Basic LLM Chain1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1424,
+        16
+      ],
+      "id": "60b6caf2-f3a7-4f54-924d-d80d4daba1cb",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1VH0gDbQIFh1tfBq8eh-jfFTJM7u9JLINpQUbxrfugII",
+          "mode": "list",
+          "cachedResultName": "AI Research Papers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VH0gDbQIFh1tfBq8eh-jfFTJM7u9JLINpQUbxrfugII/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VH0gDbQIFh1tfBq8eh-jfFTJM7u9JLINpQUbxrfugII/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "PaperID": "={{$json.id.replace(\"http://arxiv.org/abs/\", \"\")}}",
+            "Title": "={{$json.title}}",
+            "Authors": "={{$json.author.map(a => a.name).join(\", \")}}",
+            "Summary": "={{$json.text.match(/Summary:\\n([\\s\\S]*?)\\n\\nKeywords:/)[1]}}",
+            "Keywords": "={{$json.text.match(/Keywords:\\n([\\s\\S]*)/)[1]}}",
+            "Published": "={{ $json.published.split(\"T\")[0] }}",
+            "Link": "={{$json.id}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "PaperID",
+              "displayName": "PaperID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Authors",
+              "displayName": "Authors",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Keywords",
+              "displayName": "Keywords",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Published",
+              "displayName": "Published",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Link",
+              "displayName": "Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1664,
+        16
+      ],
+      "id": "13fb0091-cd59-4971-83b8-a48b1e1ac383",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "e35V0gca9rvMknuM",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "557890bd-68f0-4b4e-8643-3630e5f2773f",
+              "leftValue": "={{$json.summary.split(/\\s+/).length}}",
+              "rightValue": 100,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        928,
+        -144
+      ],
+      "id": "d8b371d5-af1b-4319-a8a1-3a776ec00691",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "sendTo": "Fatimah.Moheeb@gmail.com",
+        "subject": "Paper skipped - Abstract too short",
+        "message": "=The following paper was not summarized because its abstract contained fewer than 350 words.\n\nTitle:\n{{$json.title}}\n\nWord Count:\n{{$json.summary.split(/\\s+/).length}}\n\nLink:\n{{$json.id}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        944,
+        128
+      ],
+      "id": "6a86d1b6-d441-4542-94c7-736b2414129d",
+      "name": "Send a message",
+      "webhookId": "f247ddd5-ad00-4d75-95bd-bb4a0da5e775",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Oj86AaRrlY6HmJ0l",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "removeItemsSeenInPreviousExecutions",
+        "dedupeValue": "={{ $json.id.replace(\"[http://arxiv.org/abs/](http://arxiv.org/abs/)\", \"\") }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        752,
+        -144
+      ],
+      "id": "a300f193-9827-4ab0-8482-b9baa8556fa9",
+      "name": "Remove Duplicates"
+    },
+    {
+      "parameters": {
+        "sendTo": "Fatimah.Moheeb@gmail.com",
+        "subject": " Daily AI Research Digest",
+        "emailType": "text",
+        "message": "={{\n` Daily AI Research Digest\n\nHello,\n\nHere are today's AI research papers automatically collected from arXiv and summarized using OpenAI.\n\n${$json.data.map((paper, index) => `\n==================================================\n\n Paper ${index + 1}\n\nTitle:\n${paper.Title}\n\n Authors:\n${paper.Authors}\n\n Summary:\n${paper.Summary}\n\n🏷️ Keywords:\n${paper.Keywords}\n\n Published:\n${paper.Published}\n\n Read the paper:\n${paper.Link}\n\n`).join('')}\n\n==================================================\n\nThis email was generated automatically by the AI Research Paper Digest workflow.\n\nHave a productive day! `\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2048,
+        16
+      ],
+      "id": "7b69ae55-9ab0-4a81-9ea9-aa50630ddc3c",
+      "name": "Send a message1",
+      "webhookId": "6883eab5-d747-4a90-8732-e75354276fbc",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Oj86AaRrlY6HmJ0l",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1872,
+        16
+      ],
+      "id": "f555933c-7e6e-40e1-b1d9-8227dc12076b",
+      "name": "Aggregate"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e7ff2e13-5718-414e-84ec-fcca024c35d5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e2acc43fb46ef687c6cc990defa5668af70c44808c24a3328bd289220da4e64a"
+  },
+  "nodeGroups": [],
+  "id": "CRK7YQ90Gn754LCe",
+  "tags": []
+}
