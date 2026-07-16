@@ -1,4 +1,4 @@
-#  AI Research Paper Digest Automation
+#  AI Research Paper Summary Automation
 
 ##  Overview
 
